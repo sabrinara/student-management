@@ -16,8 +16,9 @@ const Dashboard = () => {
 
     const handleLogout = () => {
         localStorage.removeItem("user");
-        toast.success("Logout Successful");
+        
         navigate("/login");
+        toast.success("Logout Successful");
     };
 
     return (
@@ -30,7 +31,7 @@ const Dashboard = () => {
                 </div>
             </Link>
 
-            <Link to="/manageStudent" className={getLinkClass("/manageStudent")}>
+            <Link to="/manageStudent" className={getLinkClass("/")}>
                 <div className="flex items-center gap-3">
                     <GoTasklist className="w-6 h-6" />
                     <h1>Manage Student</h1>
