@@ -122,17 +122,17 @@ const ManageStudent = () => {
             </div>
 
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full bg-white border border-gray-200">
-                    <thead className="bg-[#F33823] text-white text-center">
-                        <tr>
+            <div className="overflow-x-auto rounded-md">
+                <table className="min-w-full bg-white border border-gray-200 rounded-md">
+                    <thead className="bg-[#F33823] text-white text-center ">
+                        <tr >
                             <th className="px-6 py-3 text-left text-xs font-medium">Name</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">Class</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">Roll No.</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">View /Edit /Delete</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-200 ">
                         {filteredStudents?.length > 0 ? (
                             filteredStudents?.map(student => (
                                 <tr key={student.id}>
