@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { auth, provider, signInWithPopup } from '../config/firebase.config';
+import { IoLogoGoogle } from 'react-icons/io';
 
 const image_hosting_key = import.meta.env.VITE_IMAGE_HOSTING_KEY;
 const image_upload_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
@@ -120,12 +121,17 @@ const Login = () => {
             </button>
           </div>
         </form>
-        <div className="mt-6">
+
+      
+        
+         
+        <div className="my-4">
           <button
             onClick={handleGoogleSignIn}
             className="block w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            Sign in with Google
+            <IoLogoGoogle className="inline-block w-5 h-5 -mt-1 mr-2" /> Google
+
           </button>
         </div>
       </div>

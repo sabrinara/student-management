@@ -22,7 +22,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="flex flex-col justify-start items-start pl-10 gap-5 h-full py-10">
+        <div className="flex flex-col justify-start items-start pl-10 gap-5 h-full py-20">
 
             <Link to="/addStudent" className={getLinkClass("/addStudent")}>
                 <div className="flex items-center gap-3">
@@ -31,7 +31,7 @@ const Dashboard = () => {
                 </div>
             </Link>
 
-            <Link to="/manageStudent" className={getLinkClass("/")}>
+            <Link to="/" className={getLinkClass("/")}>
                 <div className="flex items-center gap-3">
                     <GoTasklist className="w-6 h-6" />
                     <h1>Manage Student</h1>
