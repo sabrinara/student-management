@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {  updateStudent, deleteStudent } from '../../redux/studentReducer';
+import { updateStudent, deleteStudent } from '../../redux/studentReducer';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { useParams } from 'react-router-dom';
 
 const ManageStudent = () => {
-    const { id} = useParams();
+    const { id } = useParams();
     const dispatch = useDispatch();
     const students = useSelector((state) => state.students);
     const [searchTerm, setSearchTerm] = useState('');
     const [classFilter, setClassFilter] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
-    console.log(students);
-//reload page will not delete data
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
     useEffect(() => {
         const storedStudents = localStorage.getItem('students');
@@ -23,8 +24,6 @@ const ManageStudent = () => {
             dispatch({ type: 'SET_STUDENTS', payload: parsedStudents });
         }
     }, [dispatch]);
-
-
 
     const handleView = (student) => {
         setSelectedStudent(student);
@@ -41,7 +40,7 @@ const ManageStudent = () => {
         document.getElementById('edit').showModal();
     };
 
-    const handleUpdate = e => {
+    const handleUpdate = (e) => {
         e.preventDefault();
         dispatch(updateStudent(selectedStudent));
 
@@ -53,9 +52,10 @@ const ManageStudent = () => {
         });
         dispatch({ type: 'SET_STUDENTS', payload: updatedStudents });
         localStorage.setItem('students', JSON.stringify(updatedStudents));
-      
+
         toast.success('Student updated successfully');
         document.getElementById('edit').close();
+        setSelectedStudent(null);
     };
 
     const handleChange = (e) => {
@@ -68,7 +68,7 @@ const ManageStudent = () => {
         if (confirmDelete) {
             dispatch(deleteStudent(id));
             const updatedStudents = students.filter((student) => student.id !== id);
-         
+
             localStorage.setItem('students', JSON.stringify(updatedStudents));
             toast.success("Student deleted successfully");
         }
@@ -87,6 +87,20 @@ const ManageStudent = () => {
         return matchesSearchTerm && matchesClassFilter;
     });
 
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = filteredStudents.slice(indexOfFirstItem, indexOfLastItem);
+
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+
+    const handlePrevPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
+
+    const handleNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
+
     const date = new Date();
     const formattedDate = `${date.getFullYear()} ${date.toLocaleString('default', { month: 'long' })} ${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
@@ -99,18 +113,15 @@ const ManageStudent = () => {
                     placeholder="Search by name or roll "
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="px-4 py-2  border border-gray-300 rounded-md "
+                    className="px-4 py-2 border border-gray-300 rounded-md "
                 />
-
-
                 <input
                     type="text"
                     placeholder="Filter by class"
                     value={classFilter}
                     onChange={(e) => setClassFilter(e.target.value)}
-                    className="px-4 py-2  border border-gray-300 rounded-md "
+                    className="px-4 py-2 border border-gray-300 rounded-md "
                 />
-
                 <button
                     onClick={handlePrint}
                     className="px-4 py-2 rounded-md border"
@@ -119,24 +130,19 @@ const ManageStudent = () => {
                 </button>
                 <p className='text-lg font-medium'>{formattedDate}</p>
             </div>
-            <div className="flex space-x-4 mb-6">
-
-            </div>
-
-
             <div className="overflow-x-auto rounded-md">
                 <table className="min-w-full bg-white border border-gray-200 rounded-md">
                     <thead className="bg-[#F33823] text-white text-center ">
-                        <tr >
+                        <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium">Name</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">Class</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">Roll No.</th>
                             <th className="px-6 py-3 text-left text-xs font-medium">View /Edit /Delete</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 ">
-                        {filteredStudents?.length > 0 ? (
-                            filteredStudents?.map(student => (
+                    <tbody className="divide-y divide-gray-200">
+                        {currentItems.length > 0 ? (
+                            currentItems.map(student => (
                                 <tr key={student.id}>
                                     <td className="px-6 py-4">{student.firstName} {student.middleName} {student.lastName}</td>
                                     <td className="px-6 py-4">{student.class}</td>
@@ -162,143 +168,147 @@ const ManageStudent = () => {
                     </tbody>
                 </table>
             </div>
-
-
+            <div className="flex justify-between items-center mt-4">
+                <button onClick={handlePrevPage} disabled={currentPage === 1} className="px-4 py-2 text-sm rounded-md border bg-[#F33823] text-white">
+                    Previous
+                </button>
+                <span className="text-sm">{`Page ${currentPage} of ${totalPages}`}</span>
+                <button onClick={handleNextPage} disabled={currentPage === totalPages} className="px-2 py-1 text-sm rounded-md border bg-[#F33823] text-white">
+                    Next
+                </button>
+            </div>
             <dialog id='edit' className="modal">
                 <div className="modal-box bg-white shadow-md rounded-lg p-6">
                     <button className="btn btn-sm btn-circle absolute top-2 right-2" onClick={() => document.getElementById('edit').close()}>✕</button>
                     <h3 className="text-xl font-bold mb-4 text-center">Edit Student</h3>
                     <form onSubmit={handleUpdate} className="space-y-6">
-    <div className="flex space-x-4">
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">First Name</label>
-            <input
-                type="text"
-                name="firstName"
-                value={selectedStudent?.firstName || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Middle Name</label>
-            <input
-                type="text"
-                name="middleName"
-                value={selectedStudent?.middleName || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Last Name</label>
-            <input
-                type="text"
-                name="lastName"
-                value={selectedStudent?.lastName || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-    </div>
-    <div className="flex space-x-4">
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Class</label>
-            <input
-                type="text"
-                name="class"
-                value={selectedStudent?.class || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Division</label>
-            <input
-                type="text"
-                name="division"
-                value={selectedStudent?.division || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-            <input
-                type="text"
-                name="rollNumber"
-                value={selectedStudent?.rollNumber || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-    </div>
-    <div className="flex space-x-4">
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Address Line 1</label>
-            <input
-                type="text"
-                name="addressLine1"
-                value={selectedStudent?.addressLine1 || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Address Line 2</label>
-            <input
-                type="text"
-                name="addressLine2"
-                value={selectedStudent?.addressLine2 || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-    </div>
-    <div className="flex space-x-4">
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">City</label>
-            <input
-                type="text"
-                name="city"
-                value={selectedStudent?.city || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Landmark</label>
-            <input
-                type="text"
-                name="landmark"
-                value={selectedStudent?.landmark || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-        <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700">Pincode</label>
-            <input
-                type="text"
-                name="pincode"
-                value={selectedStudent?.pincode || ''}
-                onChange={handleChange}
-                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-        </div>
-    </div>
-    <button type="submit" className="mt-4 bg-[#F33823] px-6 py-3 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Save</button>
-</form>
-
+                        <div className="flex space-x-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">First Name</label>
+                                <input
+                                    type="text"
+                                    name="firstName"
+                                    value={selectedStudent?.firstName || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Middle Name</label>
+                                <input
+                                    type="text"
+                                    name="middleName"
+                                    value={selectedStudent?.middleName || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                                <input
+                                    type="text"
+                                    name="lastName"
+                                    value={selectedStudent?.lastName || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex space-x-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Class</label>
+                                <input
+                                    type="text"
+                                    name="class"
+                                    value={selectedStudent?.class || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Division</label>
+                                <input
+                                    type="text"
+                                    name="division"
+                                    value={selectedStudent?.division || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Roll Number</label>
+                                <input
+                                    type="text"
+                                    name="rollNumber"
+                                    value={selectedStudent?.rollNumber || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex space-x-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Address Line 1</label>
+                                <input
+                                    type="text"
+                                    name="addressLine1"
+                                    value={selectedStudent?.addressLine1 || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Address Line 2</label>
+                                <input
+                                    type="text"
+                                    name="addressLine2"
+                                    value={selectedStudent?.addressLine2 || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex space-x-4">
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">City</label>
+                                <input
+                                    type="text"
+                                    name="city"
+                                    value={selectedStudent?.city || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Landmark</label>
+                                <input
+                                    type="text"
+                                    name="landmark"
+                                    value={selectedStudent?.landmark || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className="block text-sm font-medium text-gray-700">Pincode</label>
+                                <input
+                                    type="text"
+                                    name="pincode"
+                                    value={selectedStudent?.pincode || ''}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                        </div>
+                        <button type="submit" className="mt-4 bg-[#F33823] px-6 py-3 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Save</button>
+                    </form>
                 </div>
             </dialog>
-
-
             {selectedStudent && (
                 <dialog id='view' className="modal">
                     <div className="modal-box bg-white shadow-md rounded-lg p-6">
                         <button className="btn btn-sm btn-circle absolute top-2 right-2" onClick={handleCloseModal}>✕</button>
-                        <h3 className="text-xl font-bold mb-4 text-center">Student Details  </h3>
+                        <h3 className="text-xl font-bold mb-4 text-center">Student Details</h3>
                         <div className="space-y-2">
                             <img src={selectedStudent.profilePicture} alt="" className='w-[140vh] h-[100vh]' />
                             <p className='font-bold text-2xl'> {selectedStudent.firstName} {selectedStudent.middleName} {selectedStudent.lastName}</p>
