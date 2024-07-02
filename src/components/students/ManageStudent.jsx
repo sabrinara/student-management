@@ -40,28 +40,38 @@ const ManageStudent = () => {
         document.getElementById('edit').showModal();
     };
 
-    const handleUpdate = (e) => {
-        e.preventDefault();
-        dispatch(updateStudent(selectedStudent));
-
-        const updatedStudents = students.map(student => {
-            if (student.id === selectedStudent.id) {
-                return selectedStudent;
-            }
-            return student;
-        });
-        dispatch({ type: 'SET_STUDENTS', payload: updatedStudents });
-        localStorage.setItem('students', JSON.stringify(updatedStudents));
-
-        toast.success('Student updated successfully');
-        document.getElementById('edit').close();
-        setSelectedStudent(null);
-    };
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setSelectedStudent({ ...selectedStudent, [name]: value });
+        setSelectedStudent(prevStudent => ({
+            ...prevStudent,
+            [name]: value
+        }));
     };
+    
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        try {
+            await dispatch(updateStudent(selectedStudent));
+    
+            const updatedStudents = students.map(student => {
+                if (student.id === selectedStudent.id) {
+                    return selectedStudent;
+                }
+                return student;
+            });
+    
+            dispatch({ type: 'SET_STUDENTS', payload: updatedStudents });
+            localStorage.setItem('students', JSON.stringify(updatedStudents)); 
+    
+            toast.success('Student updated successfully');
+            document.getElementById('edit').close();
+        } catch (error) {
+            console.error('Error updating student:', error);
+            toast.error('Failed to update student. Please try again.');
+        }
+    };
+    
+    
 
     const handleDelete = (id) => {
         const confirmDelete = window.confirm("Are you sure you want to delete this student?");
@@ -145,7 +155,7 @@ const ManageStudent = () => {
                             currentItems.map(student => (
                                 <tr key={student.id}>
                                     <td className="px-6 py-4">{student.firstName} {student.middleName} {student.lastName}</td>
-                                    <td className="px-6 py-4">{student.class}</td>
+                                    <td className="px-6 py-4">{student.studentClass}</td>
                                     <td className="px-6 py-4">{student.rollNumber}</td>
                                     <td className="px-6 py-4 flex space-x-4">
                                         <button className="text-red-600" onClick={() => handleView(student)}>
@@ -190,7 +200,7 @@ const ManageStudent = () => {
                                     name="firstName"
                                     value={selectedStudent?.firstName || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -200,7 +210,7 @@ const ManageStudent = () => {
                                     name="middleName"
                                     value={selectedStudent?.middleName || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -210,19 +220,20 @@ const ManageStudent = () => {
                                     name="lastName"
                                     value={selectedStudent?.lastName || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                         </div>
                         <div className="flex space-x-4">
+                             
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700">Class</label>
                                 <input
                                     type="text"
-                                    name="class"
-                                    value={selectedStudent?.class || ''}
+                                    name="studentClass"
+                                    value={selectedStudent?.studentClass || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -232,7 +243,7 @@ const ManageStudent = () => {
                                     name="division"
                                     value={selectedStudent?.division || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -242,7 +253,7 @@ const ManageStudent = () => {
                                     name="rollNumber"
                                     value={selectedStudent?.rollNumber || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                         </div>
@@ -254,7 +265,7 @@ const ManageStudent = () => {
                                     name="addressLine1"
                                     value={selectedStudent?.addressLine1 || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -264,7 +275,7 @@ const ManageStudent = () => {
                                     name="addressLine2"
                                     value={selectedStudent?.addressLine2 || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                         </div>
@@ -276,7 +287,7 @@ const ManageStudent = () => {
                                     name="city"
                                     value={selectedStudent?.city || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -286,7 +297,7 @@ const ManageStudent = () => {
                                     name="landmark"
                                     value={selectedStudent?.landmark || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                             <div className="flex-1">
@@ -296,7 +307,7 @@ const ManageStudent = () => {
                                     name="pincode"
                                     value={selectedStudent?.pincode || ''}
                                     onChange={handleChange}
-                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md "
                                 />
                             </div>
                         </div>

@@ -20,7 +20,7 @@ const AddStudent = () => {
         firstName: '',
         middleName: '',
         lastName: '',
-        class: '',
+        studentClass: '',
         division: '',
         rollNumber: '',
         addressLine1: '',
@@ -51,11 +51,11 @@ const AddStudent = () => {
             }
 
             const studentData = {
-                id: students.length + 1, // Generate unique id for new student
+                id: students.length + 1,
                 firstName: formData.firstName,
                 middleName: formData.middleName,
                 lastName: formData.lastName,
-                class: formData.class,
+                studentClass: formData.studentClass,
                 division: formData.division,
                 rollNumber: formData.rollNumber,
                 addressLine1: formData.addressLine1,
@@ -148,11 +148,11 @@ const AddStudent = () => {
                     </div>
                     <div className='flex justify-between items-center gap-5'>
                         <div className="mb-4 w-1/3">
-                            <label htmlFor="class" className="block text-sm font-medium text-gray-700">Class</label>
+                            <label htmlFor="studentClass" className="block text-sm font-medium text-gray-700">Class</label>
                             <select
-                                id="class"
-                                name="class"
-                                value={formData.class}
+                                id="studentClass"
+                                name="studentClass"
+                                value={formData.studentClass}
                                 onChange={handleChange}
                                 className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                                 placeholder='Select Class'

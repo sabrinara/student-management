@@ -11,10 +11,13 @@ const userSlice = createSlice({
             state.push(action.payload);
         },
         updateStudent: (state, action) => {
-            const { id, name, division, rollNumber, addressLine1, addressLine2, landmark, city, pincode } = action.payload;
+            const { id, firstName, middleName, lastName, studentClass, division, rollNumber, addressLine1, addressLine2, landmark, city, pincode } = action.payload;
             const existingStudent = state.find(student => student.id === id);
             if (existingStudent) {
-                existingStudent.name = name;
+                existingStudent.firstName = firstName;
+                existingStudent.middleName = middleName;
+                existingStudent.lastName = lastName;
+                existingStudent.studentClass = studentClass;
                 existingStudent.division = division;
                 existingStudent.rollNumber = rollNumber;
                 existingStudent.addressLine1 = addressLine1;
