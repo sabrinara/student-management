@@ -1,22 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { addStudent, updateStudent, deleteStudent } from '../../redux/studentReducer';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {  updateStudent, deleteStudent } from '../../redux/studentReducer';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faEye, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { useParams } from 'react-router-dom';
 
 const ManageStudent = () => {
+    const { id} = useParams();
     const dispatch = useDispatch();
-    const [students, setStudents] = useState([]);
+    const students = useSelector((state) => state.students);
     const [searchTerm, setSearchTerm] = useState('');
     const [classFilter, setClassFilter] = useState('');
     const [selectedStudent, setSelectedStudent] = useState(null);
+    console.log(students);
+//reload page will not delete data
 
     useEffect(() => {
-        const storedStudents = JSON.parse(localStorage.getItem('students')) || [];
-        setStudents(storedStudents);
-    }, []);
-    console.log(students);
+        const storedStudents = localStorage.getItem('students');
+        if (storedStudents) {
+            const parsedStudents = JSON.parse(storedStudents);
+            dispatch({ type: 'SET_STUDENTS', payload: parsedStudents });
+        }
+    }, [dispatch]);
+
+
 
     const handleView = (student) => {
         setSelectedStudent(student);
@@ -29,36 +37,30 @@ const ManageStudent = () => {
     };
 
     const handleEdit = (student) => {
-        setSelectedStudent(student);
+        setSelectedStudent({ ...student });
         document.getElementById('edit').showModal();
     };
 
-    const handleUpdate = (e) => {
+    const handleUpdate = e => {
         e.preventDefault();
-        const updatedStudent = {
-            id: selectedStudent.id,
-            firstName: e.target.firstName.value,
-            middleName: e.target.middleName.value,
-            lastName: e.target.lastName.value,
-            class: e.target.class.value,
-            division: e.target.division.value,
-            rollNumber: e.target.rollNumber.value,
-            addressLine1: e.target.addressLine1.value,
-            addressLine2: e.target.addressLine2.value,
-            city: e.target.city.value,
-            landmark: e.target.landmark.value,
-            pincode: e.target.pincode.value,
-        };
-        dispatch(updateStudent(updatedStudent));
+        dispatch(updateStudent(selectedStudent));
 
-        const updatedStudents = students.map((student) =>
-            student.id === updatedStudent.id ? updatedStudent : student
-        );
-        setStudents(updatedStudents);
+        const updatedStudents = students.map(student => {
+            if (student.id === selectedStudent.id) {
+                return selectedStudent;
+            }
+            return student;
+        });
+        dispatch({ type: 'SET_STUDENTS', payload: updatedStudents });
         localStorage.setItem('students', JSON.stringify(updatedStudents));
-
-        toast.success("Student updated successfully");
+      
+        toast.success('Student updated successfully');
         document.getElementById('edit').close();
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setSelectedStudent({ ...selectedStudent, [name]: value });
     };
 
     const handleDelete = (id) => {
@@ -66,7 +68,7 @@ const ManageStudent = () => {
         if (confirmDelete) {
             dispatch(deleteStudent(id));
             const updatedStudents = students.filter((student) => student.id !== id);
-            setStudents(updatedStudents);
+         
             localStorage.setItem('students', JSON.stringify(updatedStudents));
             toast.success("Student deleted successfully");
         }
@@ -76,7 +78,7 @@ const ManageStudent = () => {
         window.print();
     };
 
-    const filteredStudents = students.filter(student => {
+    const filteredStudents = students?.filter(student => {
         const fullName = `${student.firstName} ${student.middleName} ${student.lastName}`;
         const rollNumber = student.rollNumber;
         const matchesSearchTerm = fullName.toLowerCase().includes(searchTerm.toLowerCase()) || rollNumber.toLowerCase().includes(searchTerm.toLowerCase());
@@ -167,60 +169,127 @@ const ManageStudent = () => {
                     <button className="btn btn-sm btn-circle absolute top-2 right-2" onClick={() => document.getElementById('edit').close()}>✕</button>
                     <h3 className="text-xl font-bold mb-4 text-center">Edit Student</h3>
                     <form onSubmit={handleUpdate} className="space-y-6">
-                        <div className="flex space-x-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">First Name</label>
-                                <input type="text" name="firstName" defaultValue={selectedStudent?.firstName} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Middle Name</label>
-                                <input type="text" name="middleName" defaultValue={selectedStudent?.middleName} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Last Name</label>
-                                <input type="text" name="lastName" defaultValue={selectedStudent?.lastName} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                        </div>
-                        <div className="flex space-x-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Class</label>
-                                <input type="text" name="class" defaultValue={selectedStudent?.class} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Division</label>
-                                <input type="text" name="division" defaultValue={selectedStudent?.division} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-                                <input type="text" name="rollNumber" defaultValue={selectedStudent?.rollNumber} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                        </div>
-                        <div className="flex space-x-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Address Line 1</label>
-                                <input type="text" name="addressLine1" defaultValue={selectedStudent?.addressLine1} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Address Line 2</label>
-                                <input type="text" name="addressLine2" defaultValue={selectedStudent?.addressLine2} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                        </div>
-                        <div className="flex space-x-4">
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">City</label>
-                                <input type="text" name="city" defaultValue={selectedStudent?.city} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Landmark</label>
-                                <input type="text" name="landmark" defaultValue={selectedStudent?.landmark} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label className="block text-sm font-medium text-gray-700">Pincode</label>
-                                <input type="text" name="pincode" defaultValue={selectedStudent?.pincode} className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                            </div>
-                        </div>
-                        <button type="submit" className="mt-4 bg-[#F33823] px-6 py-3 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Save</button>
-                    </form>
+    <div className="flex space-x-4">
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">First Name</label>
+            <input
+                type="text"
+                name="firstName"
+                value={selectedStudent?.firstName || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Middle Name</label>
+            <input
+                type="text"
+                name="middleName"
+                value={selectedStudent?.middleName || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Last Name</label>
+            <input
+                type="text"
+                name="lastName"
+                value={selectedStudent?.lastName || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+    </div>
+    <div className="flex space-x-4">
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Class</label>
+            <input
+                type="text"
+                name="class"
+                value={selectedStudent?.class || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Division</label>
+            <input
+                type="text"
+                name="division"
+                value={selectedStudent?.division || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Roll Number</label>
+            <input
+                type="text"
+                name="rollNumber"
+                value={selectedStudent?.rollNumber || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+    </div>
+    <div className="flex space-x-4">
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Address Line 1</label>
+            <input
+                type="text"
+                name="addressLine1"
+                value={selectedStudent?.addressLine1 || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Address Line 2</label>
+            <input
+                type="text"
+                name="addressLine2"
+                value={selectedStudent?.addressLine2 || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+    </div>
+    <div className="flex space-x-4">
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">City</label>
+            <input
+                type="text"
+                name="city"
+                value={selectedStudent?.city || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Landmark</label>
+            <input
+                type="text"
+                name="landmark"
+                value={selectedStudent?.landmark || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+        <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700">Pincode</label>
+            <input
+                type="text"
+                name="pincode"
+                value={selectedStudent?.pincode || ''}
+                onChange={handleChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+        </div>
+    </div>
+    <button type="submit" className="mt-4 bg-[#F33823] px-6 py-3 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500">Save</button>
+</form>
+
                 </div>
             </dialog>
 

@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = localStorage.getItem("students") ? JSON.parse(localStorage.getItem("students")) : [];
+
+const initialState =  JSON.parse(localStorage.getItem('students')) || [];
 
 const userSlice = createSlice({
     name: "students",
@@ -8,30 +9,25 @@ const userSlice = createSlice({
     reducers: {
         addStudent: (state, action) => {
             state.push(action.payload);
-            localStorage.setItem("students", JSON.stringify(state));
         },
         updateStudent: (state, action) => {
-            const { id, name, divison, rollNumber, addressLine1, addressLine2, landmark, city, pincode } = action.payload;
+            const { id, name, division, rollNumber, addressLine1, addressLine2, landmark, city, pincode } = action.payload;
             const existingStudent = state.find(student => student.id === id);
             if (existingStudent) {
                 existingStudent.name = name;
-                existingStudent.divison = divison;
+                existingStudent.division = division;
                 existingStudent.rollNumber = rollNumber;
                 existingStudent.addressLine1 = addressLine1;
                 existingStudent.addressLine2 = addressLine2;
                 existingStudent.landmark = landmark;
                 existingStudent.city = city;
                 existingStudent.pincode = pincode;
-                localStorage.setItem("students", JSON.stringify(state));
             }
         },
         deleteStudent: (state, action) => {
             const id = action.payload;
-            const index = state.findIndex(student => student.id === id);
-            if (index !== -1) {
-                state.splice(index, 1);
-                localStorage.setItem("students", JSON.stringify(state));
-            }
+            // Delete the student from the state
+            return state.filter(student => student.id !== id);
         },
     },
 });
